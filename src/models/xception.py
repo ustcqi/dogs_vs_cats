@@ -249,9 +249,11 @@ def Xception(include_top=True, weights='imagenet',
                                     TF_WEIGHTS_PATH,
                                     cache_subdir='models')
         else:
+            '''
             weights_path = get_file('xception_weights_tf_dim_ordering_tf_kernels_notop.h5',
                                     TF_WEIGHTS_PATH_NO_TOP,
                                     cache_subdir='models')
+            '''
         model.load_weights(weights_path_no_top)
 
     if old_data_format:

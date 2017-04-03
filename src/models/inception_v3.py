@@ -382,6 +382,7 @@ def InceptionV3(include_top=True,
                 cache_subdir='models',
                 md5_hash='bcbd6486424b2319ff4ef7d526e38f63')
             '''
+            pass
         model.load_weights(weights_path_no_top)
         if K.backend() == 'theano':
             convert_all_kernels_in_model(model)
