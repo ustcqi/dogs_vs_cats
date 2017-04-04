@@ -8,9 +8,9 @@ import h5py
 
 class FeatureExtractor:
     def __init__(self):
-        self.train_data_dir = '../data/train'
-        self.test_data_dir = '../data/test'
-        self.features_h5y_root = '../data/features_h5y/'
+        self.train_data_dir = '../data/train2'
+        self.test_data_dir = '../data/test2'
+        self.features_h5y_root = '../data/h5y/'
         self.trasformation_ratio = 0.05
         self.image_size = (299, 299)
         self.channels = 3
@@ -23,15 +23,17 @@ class FeatureExtractor:
         height = image_size[1]
         input_tensor = Input((height, width, self.channels))
         x = input_tensor
+        print(np.shape(input_tensor))
         if func is not None:
             x = Lambda(func)(x)
         print('base model input tensor shape: ', np.shape(x))
         base_model = MODEL(input_tensor=x, weights='imagenet', include_top=False)
         print('base model name: ', base_model.name)
-
         print('base model output tensor shape ', np.shape(base_model.output))
+
         model = Model(base_model.input, GlobalAveragePooling2D()(base_model.output))
         print('model name: ', model.name)
+        print('model outout tensor shape ', np.shape(model.output))
 
         gen = ImageDataGenerator()
         train_generator = gen.flow_from_directory(self.train_data_dir,
@@ -43,8 +45,12 @@ class FeatureExtractor:
                                                  shuffle=False,
                                                  batch_size=self.batch_size,
                                                  class_mode=None)
-        train = model.predict_generator(train_generator, train_generator.samples)
-        test = model.predict_generator(test_generator, test_generator.samples)
+
+        print(train_generator.samples, test_generator.samples, train_generator.classes)
+        train = model.predict_generator(train_generator, train_generator.samples/self.batch_size, workers=4)
+        test = model.predict_generator(test_generator, test_generator.samples/self.batch_size, workers=4)
+        print(type(train), np.shape(train))
+        print(type(test), np.shape(test))
         dumped_fname = self.features_h5y_root + 'feature_%s.h5' % MODEL.func_name
         with h5py.File(dumped_fname) as h:
             h.create_dataset("train", data=train)
@@ -54,7 +60,7 @@ class FeatureExtractor:
 
 if __name__ == "__main__":
     feature_extractor = FeatureExtractor()
-    ''''
+    '''
     import models.resnet50 as resnet50
     feature_extractor.extract_feature(resnet50.ResNet50)
 
@@ -62,6 +68,7 @@ if __name__ == "__main__":
     feature_extractor.extract_feature(inception_v3.InceptionV3,
                                       image_size=(229, 229),
                                       func=inception_v3.preprocess_input)
+
 
     import models.vgg16 as vgg16
     feature_extractor.extract_feature(vgg16.VGG16, image_size=(224, 224))
