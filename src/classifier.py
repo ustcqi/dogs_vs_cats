@@ -14,10 +14,11 @@ np.random.seed(2017)
 class DogCatClassifier:
 
     def __init__(self):
-        self.batch_size = 1
+        self.batch_size = 16
         self.nb_epoch = 8
         self.validation_split = 0.2
         self.dropout = 0.5
+        self.image_size = (224, 224)
 
         self.feature_h5_list = [
             #"feature_ResNet50.h5",
@@ -27,6 +28,10 @@ class DogCatClassifier:
             #"feature_VGG19.h5"
         ]
         self.features_h5y_path = '../data/h5y/'
+        self.test_data_dir = '../data/test'
+
+        self.sample_submission_csv = '../data/sample_submission.csv'
+        self.pred_submission_csv = '../data/pred.csv'
 
     def merge_features(self, feature_list=None, features_path=None):
         if features_path is None:
@@ -75,25 +80,28 @@ class DogCatClassifier:
         return y_pred
 
 
-def generate_submission(y_pred, fname):
-    df = pd.read_csv("../data/sample_submission.csv")
+    def generate_submission(self, y_pred, image_size=None, fname=None):
+        if image_size is None:
+            image_size = self.image_size
+        if fname is None:
+            fname = self.pred_submission_csv
+        df = pd.read_csv(self.sample_submission_csv)
 
-    image_size = (224, 224)
-    gen = ImageDataGenerator()
-    test_generator = gen.flow_from_directory("../data/test2/",
-                                             image_size,
-                                             shuffle=False,
-                                             batch_size=16,
-                                             class_mode=None)
-    print(len(y_pred))
-    print(len(test_generator.filenames))
-    for i, image_name in enumerate(test_generator.filenames):
-        index = int(image_name[image_name.rfind('/')+1:image_name.rfind('.')])
-        print(index, i, y_pred[i])
-        df.set_value(index-1, 'label', y_pred[i])
+        #image_size = (224, 224)
+        gen = ImageDataGenerator()
+        test_generator = gen.flow_from_directory(self.test_data_dir,
+                                                self.image_size,
+                                                shuffle=False,
+                                                batch_size=self.batch_size,
+                                                class_mode=None)
 
-    df.to_csv(fname, index=None)
-    df.head(10)
+        for i, image_name in enumerate(test_generator.filenames):
+            index = int(image_name[image_name.rfind('/')+1:image_name.rfind('.')])
+            print(index, i, y_pred[i])
+            df.set_value(index-1, 'label', y_pred[i])
+
+        df.to_csv(fname, index=None)
+        df.head(10)
 
 if __name__ == "__main__":
     dog_cat_cls = DogCatClassifier()
@@ -103,5 +111,5 @@ if __name__ == "__main__":
     model = dog_cat_cls.train_model(X_train, y_train)
     y_pred = dog_cat_cls.predict(model, X_test)
     submit_fname = '../data/pred.csv'
-    generate_submission(y_pred, submit_fname)
+    dog_cat_cls.generate_submission(y_pred, submit_fname)
 

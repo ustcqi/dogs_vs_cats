@@ -60,28 +60,26 @@ class FeatureExtractor:
 
 if __name__ == "__main__":
     feature_extractor = FeatureExtractor()
-    '''
+
     import models.resnet50 as resnet50
     feature_extractor.extract_feature(resnet50.ResNet50)
 
-    import models.inception_v3 as inception_v3
-    feature_extractor.extract_feature(inception_v3.InceptionV3,
-                                      image_size=(229, 229),
-                                      func=inception_v3.preprocess_input)
-
-
     import models.vgg16 as vgg16
     feature_extractor.extract_feature(vgg16.VGG16, image_size=(224, 224))
-    '''
+
     import models.xception as xception
     feature_extractor.extract_feature(xception.Xception,
                                       image_size=(299, 299),
                                       func=xception.preprocess_input)
-    '''
+
     import models.vgg19 as vgg19
     feature_extractor.extract_feature(vgg19.VGG19, image_size=(224, 224))
     '''
-
+    import models.inception_v3 as inception_v3
+    feature_extractor.extract_feature(inception_v3.InceptionV3,
+                                      image_size=(229, 229),
+                                      func=inception_v3.preprocess_input)
+    '''
 
 
 
