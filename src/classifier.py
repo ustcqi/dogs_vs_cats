@@ -21,11 +21,11 @@ class DogCatClassifier:
         self.image_size = (224, 224)
 
         self.feature_h5_list = [
-            #"feature_ResNet50.h5",
-            "feature_Xception.h5"
-            #"feature_InceptionV3.h5",
-            #"feature_VGG16.h5"
-            #"feature_VGG19.h5"
+            "feature_ResNet50.h5",
+            "feature_Xception.h5",
+            "feature_VGG16.h5"
+            #"feature_VGG19.h5",
+            #"feature_InceptionV3.h5"
         ]
         self.features_h5y_path = '../data/h5y/'
         self.test_data_dir = '../data/test'

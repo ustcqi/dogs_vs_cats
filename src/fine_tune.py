@@ -14,7 +14,7 @@ class FeatureExtractor:
         self.trasformation_ratio = 0.05
         self.image_size = (299, 299)
         self.channels = 3
-        self.batch_size = 16
+        self.batch_size = 20
 
     def extract_feature(self, MODEL, image_size=None, func=None):
         if image_size == None:
@@ -46,7 +46,8 @@ class FeatureExtractor:
                                                  batch_size=self.batch_size,
                                                  class_mode=None)
 
-        print(train_generator.samples, test_generator.samples, train_generator.classes)
+        print(train_generator.samples,  train_generator.classes)
+        print(test_generator.samples, test_generator.classes)
         train = model.predict_generator(train_generator, train_generator.samples/self.batch_size, workers=4)
         test = model.predict_generator(test_generator, test_generator.samples/self.batch_size, workers=4)
         print(type(train), np.shape(train))
@@ -60,9 +61,8 @@ class FeatureExtractor:
 
 if __name__ == "__main__":
     feature_extractor = FeatureExtractor()
-
     import models.resnet50 as resnet50
-    feature_extractor.extract_feature(resnet50.ResNet50)
+    feature_extractor.extract_feature(resnet50.ResNet50, image_size=(229, 229))
 
     import models.vgg16 as vgg16
     feature_extractor.extract_feature(vgg16.VGG16, image_size=(224, 224))
@@ -71,10 +71,9 @@ if __name__ == "__main__":
     feature_extractor.extract_feature(xception.Xception,
                                       image_size=(299, 299),
                                       func=xception.preprocess_input)
-
+    '''
     import models.vgg19 as vgg19
     feature_extractor.extract_feature(vgg19.VGG19, image_size=(224, 224))
-    '''
     import models.inception_v3 as inception_v3
     feature_extractor.extract_feature(inception_v3.InceptionV3,
                                       image_size=(229, 229),
