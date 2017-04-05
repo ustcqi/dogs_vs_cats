@@ -7,6 +7,9 @@ import numpy as np
 from keras.models import *
 from keras.layers import *
 from keras.preprocessing.image import *
+from keras.callbacks import EarlyStopping
+
+import matplotlib.pyplot as plt
 
 np.random.seed(2017)
 
@@ -14,18 +17,18 @@ np.random.seed(2017)
 class DogCatClassifier:
 
     def __init__(self):
-        self.batch_size = 16
+        self.batch_size = 20
         self.nb_epoch = 8
         self.validation_split = 0.2
         self.dropout = 0.5
         self.image_size = (224, 224)
 
         self.feature_h5_list = [
-            "feature_ResNet50.h5",
-            "feature_Xception.h5",
-            "feature_VGG16.h5"
-            #"feature_VGG19.h5",
-            #"feature_InceptionV3.h5"
+            #"feature_ResNet50.h5",
+            "feature_Xception.h5"
+            #"feature_InceptionV3.h5",
+            #"feature_VGG16.h5"
+            #"feature_VGG19.h5"
         ]
         self.features_h5y_path = '../data/h5y/'
         self.test_data_dir = '../data/test'
@@ -58,6 +61,7 @@ class DogCatClassifier:
         X_train, y_train = shuffle(X_train, y_train)
         return (X_train, X_test, y_train)
 
+
     def train_model(self, X_train, y_train):
         input_tensor = Input(X_train.shape[1:])
         x = input_tensor
@@ -67,10 +71,13 @@ class DogCatClassifier:
         model.compile(optimizer='adadelta',
                       loss='binary_crossentropy',
                       metrics=['accuracy'])
-        model.fit(X_train, y_train,
+        early_stopping = EarlyStopping(monitor='val_loss', patience=2)
+        history = model.fit(X_train, y_train,
                   batch_size=self.batch_size,
                   nb_epoch=self.nb_epoch,
-                  validation_split=self.validation_split)
+                  validation_split=self.validation_split,
+                  callbacks=[early_stopping])
+        self.history = history
         return model
 
 
@@ -101,7 +108,25 @@ class DogCatClassifier:
             df.set_value(index-1, 'label', y_pred[i])
 
         df.to_csv(fname, index=None)
-        df.head(10)
+
+    def plot_history(self, history=None):
+        if history is None:
+            history = self.history
+        plt.plot(history.history['acc'])
+        plt.plot(history.history['val_acc'])
+        plt.title('model accuracy')
+        plt.ylabel('accuracy')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
+        # summarize history for loss
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title('model loss')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
 
 if __name__ == "__main__":
     dog_cat_cls = DogCatClassifier()
@@ -112,4 +137,6 @@ if __name__ == "__main__":
     y_pred = dog_cat_cls.predict(model, X_test)
     submit_fname = '../data/pred.csv'
     dog_cat_cls.generate_submission(y_pred, submit_fname)
+    print(dog_cat_cls.history.history.keys())
+    dog_cat_cls.plot_history()
 
